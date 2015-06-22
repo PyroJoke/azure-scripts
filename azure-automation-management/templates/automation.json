@@ -1,0 +1,203 @@
+{
+    "$schema": "http://schemas.microsoft.org/azure/deploymentTemplate?api-version=2015-01-01-preview#",
+    "contentVersion": "1.0",
+    "parameters": {
+        "accountName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Azure Automation account to deploy to."
+            }
+        },
+        "regionId": {
+            "type": "string",
+            "allowedValues": [
+                "Japan East",
+                "East US 2",
+                "West Europe",
+                "Southeast Asia",
+                "South Central US"
+            ],
+            "metadata": {
+                "description": "The region to deploy the Automation account in."
+            }
+        },
+        "credentialName": {
+            "type": "string",
+            "metadata": {
+                "description": "DefaultAzureCredential is the name of the Automation credential used in this runbook. This credential allows you to authenticate to Azure. "
+            }
+        },
+        "userName": {
+            "type": "string",
+            "metadata": {
+                "description": "The username for the Azure Automation credential."
+            }
+        },
+        "password": {
+            "type": "string",
+            "metadata": {
+                "description": "The password for the Azure Automation credential."
+            }
+        },
+		"defaultSubscriptionVarName": {
+			"type": "string",
+            "metadata": {
+                "description": "Name of Default Subscription variable asset."
+            }
+		},
+		"defaultSubscription": {
+			"type": "string",
+            "metadata": {
+                "description": "Value of Default Subscription variable asset."
+            }
+		}
+    },
+    "variables": {
+        "runbookName": "Get-AzureVMTutorial",
+        "scriptUri": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1",
+        "runbookDescription": "Authenticates to Azure and lists all the Azure V1 VMs",
+        "sku": "Free"
+    },
+    "resources": [
+        {
+            "name": "[parameters('accountName')]",
+            "type": "Microsoft.Automation/automationAccounts",
+            "apiVersion": "2015-01-01-preview",
+            "location": "[parameters('regionId')]",
+            "dependsOn": [],
+            "tags": {},
+            "properties": {
+                "sku": {
+                    "name": "[variables('sku')]"
+                }
+            },
+            "resources": [
+                {
+                    "name": "[parameters('credentialName')]",
+                    "type": "credentials",
+                    "apiVersion": "2015-01-01-preview",
+                    "location": "[parameters('regionId')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', parameters('accountName'))]"
+                    ],
+                    "tags": {},
+                    "properties": {
+                        "userName": "[parameters('userName')]",
+                        "password": "[parameters('password')]"
+                    }
+                },
+				{
+					"name": "[parameters('defaultSubscriptionVarName')]",
+					"type": "variables",
+					"apiVersion": "2015-01-01-preview",
+					"location": "[parameters('regionId')]",
+					"dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', parameters('accountName'))]"
+                    ],
+                    "tags": {},
+					"properties": {
+						"description":"Default Subscription Name that will be picked from RunBooks",
+						"isEncrypted":0,
+						"type": "string",
+						"value": "[parameters('defaultSubscription')]"
+					}
+				},
+				{
+					"name": "EuropeMorning",
+					"type": "schedules",
+					"apiVersion": "2015-01-01-preview",
+					"location": "[parameters('regionId')]",
+					"dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', parameters('accountName'))]"
+                    ],
+                    "tags": {},
+					"properties": {
+						"description":"Run every morning in Europe Region",
+						"startTime":"2015-06-21T04:00:00",
+						"isEnabled":true,
+						"interval":1,
+						"frequency":"day"
+					}
+				},
+				{
+					"name": "EuropeEvening",
+					"type": "schedules",
+					"apiVersion": "2015-01-01-preview",
+					"location": "[parameters('regionId')]",
+					"dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', parameters('accountName'))]"
+                    ],
+                    "tags": {},
+					"properties": {
+						"description":"Run every morning in USA Region",
+						"startTime":"2015-06-21T20:00:00",
+						"isEnabled":true,
+						"interval":1,
+						"frequency":"day"
+					}
+				},
+				{
+					"name": "USAMorning",
+					"type": "schedules",
+					"apiVersion": "2015-01-01-preview",
+					"location": "[parameters('regionId')]",
+					"dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', parameters('accountName'))]"
+                    ],
+                    "tags": {},
+					"properties": {
+						"description":"Run every morning in Europe Region",
+						"startTime":"2015-06-21T11:00:00",
+						"isEnabled":true,
+						"interval":1,
+						"frequency":"day"
+					}
+				},
+				{
+					"name": "USAEvening",
+					"type": "schedules",
+					"apiVersion": "2015-01-01-preview",
+					"location": "[parameters('regionId')]",
+					"dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', parameters('accountName'))]"
+                    ],
+                    "tags": {},
+					"properties": {
+						"description":"Run every morning in Europe Region",
+						"startTime":"2015-06-21T03:00:00",
+						"isEnabled":true,
+						"interval":1,
+						"frequency":"day"
+					}
+				},
+				{
+					"name": "Write-HelloWorld",
+					"type": "runbooks",
+					"apiVersion": "2015-01-01-preview",
+					"location": "[parameters('regionId')]",
+					"dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', parameters('accountName'))]"
+                    ],
+                    "tags": {},
+					"properties": {
+						"description":"Hello world",
+				         "runbookType":"Script",
+				         "logProgress":false,
+				         "logVerbose":false,
+				         "draft":{
+				            "draftContentLink":{
+				               "uri":"https://gallery.technet.microsoft.com/scriptcenter/The-Hello-World-of-Windows-81b69574/file/111354/1/Write-HelloWorld.ps1",
+				               "contentVersion":"1.0.0.0",
+				               "contentHash":{
+				                  "algorithm":"sha256",
+				                  "value":"EqdfsYoVzERQZ3l69N55y1RcYDwkib2+2X+aGUSdr4Q="
+				               }
+				         }
+				      }
+					}
+				}
+            ]
+        }
+    ],
+    "outputs": {}
+}
